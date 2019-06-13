@@ -1,0 +1,7 @@
+database:
+  uri: "localhost"
+  name: todo-practice
+  user: test
+  password: test
+  maxOpenConns: 250
+  maxIdleConns: 50
