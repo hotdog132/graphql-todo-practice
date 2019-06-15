@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  api:
+    image: 'todo:latest'
+    depends_on:
+      - postgis
+    ports:
+      - '8080:8080'
+  postgis:
+    image: 'mdillon/postgis:9.6-alpine'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=todo
