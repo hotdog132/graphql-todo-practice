@@ -1,0 +1,8 @@
+database:
+  host: "postgis"
+  port: 5432
+  DBName: todo
+  user: test
+  password: test
+  maxOpenConns: 250
+  maxIdleConns: 50
