@@ -4,17 +4,18 @@ package graphql_todo_practice
 
 type NewTodo struct {
 	Text   string `json:"text"`
-	UserID string `json:"userId"`
+	UserID int    `json:"userId"`
 }
 
 type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+	ID     int    `json:"id"`
+	UserID int    `json:"user_id"`
+	Text   string `json:"text"`
+	Done   bool   `json:"done"`
+	User   *User  `json:"user"`
 }
 
 type User struct {
-	ID   string `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
