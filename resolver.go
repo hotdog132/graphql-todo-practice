@@ -9,9 +9,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/hotdog132/graphql-todo-practice/config"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct{}
+
+var Configs *config.Configurations
 
 func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
@@ -68,7 +72,9 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*Todo, error) {
 }
 
 func storeUser(u *User) error {
-	url := "http://user-service:7070/users"
+	url := fmt.Sprintf("http://%s:%d/users",
+		Configs.UserService.Host,
+		Configs.UserService.Port)
 
 	m := make(map[string]interface{})
 	m["id"] = u.ID
@@ -101,7 +107,8 @@ func storeUser(u *User) error {
 }
 
 func storeTodoEvent(t *Todo) error {
-	url := "http://event-service:6060/events"
+	url := fmt.Sprintf("http://%s:%d/events",
+		Configs.EventService.Host, Configs.EventService.Port)
 
 	m := make(map[string]interface{})
 	m["user_id"] = t.User.ID
@@ -134,7 +141,10 @@ func storeTodoEvent(t *Todo) error {
 }
 
 func getUserByID(userID int) (*User, error) {
-	url := fmt.Sprintf("http://user-service:7070/users/%d", userID)
+	url := fmt.Sprintf("http://%s:%d/users/%d",
+		Configs.UserService.Host,
+		Configs.UserService.Port,
+		userID)
 	res, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -154,7 +164,9 @@ func getUserByID(userID int) (*User, error) {
 }
 
 func getTodoEvents() ([]*Todo, error) {
-	res, err := http.Get("http://event-service:6060/events")
+	res, err := http.Get(fmt.Sprintf("http://%s:%d/events",
+		Configs.EventService.Host,
+		Configs.EventService.Port))
 	if err != nil {
 		log.Fatal(err)
 	}

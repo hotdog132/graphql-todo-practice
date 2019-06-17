@@ -1,0 +1,7 @@
+userService:
+  host: "user-service"
+  port: 7070
+
+eventService:
+  host: "event-service"
+  port: 6060
