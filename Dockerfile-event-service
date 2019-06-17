@@ -1,0 +1,27 @@
+FROM golang:alpine as builder
+
+RUN apk add --update --no-cache git
+
+ENV GO111MODULE=on
+
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 cd event-service && go build -o main
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/event-service/main /app/
+COPY --from=builder /app/event-service/config /app/config
+
+EXPOSE 6060
+
+

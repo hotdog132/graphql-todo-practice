@@ -1,0 +1,27 @@
+FROM golang:alpine as builder
+
+RUN apk add --update --no-cache git
+
+ENV GO111MODULE=on
+
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 cd user-service && go build -o main
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/user-service/main /app/
+COPY --from=builder /app/user-service/config /app/config
+
+EXPOSE 7070
+
+

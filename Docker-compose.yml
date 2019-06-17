@@ -1,11 +1,48 @@
 version: '3.6'
 services:
-  api:
-    image: 'todo:latest'
+  gateway:
+    image: 'gateway:latest'
+    build:
+      dockerfile: Dockerfile-gateway
+      context: .
+    depends_on:
+      - postgis
+      - user-service
+    ports:
+      - '8080:8080'
+    entrypoint:
+      - /bin/sh
+    command:
+      - '-c'
+      - sleep 10s; ./main
+  user-service:
+    image: 'user-service:latest'
+    build:
+      dockerfile: Dockerfile-user-service
+      context: .
     depends_on:
       - postgis
     ports:
-      - '8080:8080'
+      - '7070:7070'
+    entrypoint:
+      - /bin/sh
+    command:
+      - '-c'
+      - sleep 10s; ./main
+  event-service:
+    image: 'event-service:latest'
+    build:
+      dockerfile: Dockerfile-event-service
+      context: .
+    depends_on:
+      - postgis
+    ports:
+      - '6060:6060'
+    entrypoint:
+      - /bin/sh
+    command:
+      - '-c'
+      - sleep 10s; ./main
   postgis:
     image: 'mdillon/postgis:9.6-alpine'
     ports:
