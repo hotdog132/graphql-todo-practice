@@ -1,5 +1,5 @@
 # graphql-todo-practice
-- Create graphql (https://github.com/99designs/gqlgen) gateway to get informations from internal services and response to client.
+- Create graphql (https://github.com/99designs/gqlgen) gateway to get informations from internal services and response to client
 - Internal service: user-service to store and fetch user data
 - Internal service: event-service to store and fetch todo data
 - Use gateway implemented by graphql to gather data from internal services and response to client
