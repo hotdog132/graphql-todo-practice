@@ -22,11 +22,14 @@ func NewHttpEventHandler(e *echo.Echo, eu event.Usecase) {
 }
 
 func (eh *HttpEventHandler) StoreEvent(c echo.Context) error {
-	e := new(models.Event)
-	if err := c.Bind(e); err != nil {
+	m := echo.Map{}
+	if err := c.Bind(&m); err != nil {
 		return err
 	}
-
+	e := &models.Event{
+		UserID: int(m["user_id"].(float64)),
+		Text:   m["text"].(string),
+	}
 	if err := eh.EventUsecase.Store(e); err != nil {
 		return err
 	}
