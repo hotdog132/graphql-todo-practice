@@ -15,7 +15,7 @@ func NewPsqlUserRepository(conn *gorm.DB) user.Repository {
 }
 
 func (p *psqlUserRepository) Store(u *models.User) error {
-	return p.db.FirstOrCreate(u, u).Error
+	return p.db.Create(u).Error
 }
 
 func (p *psqlUserRepository) Fetch(ID int) (*models.User, error) {

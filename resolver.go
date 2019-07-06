@@ -36,6 +36,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (*Todo
 	}
 
 	if err := storeUser(todo.User); err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -100,7 +101,7 @@ func storeUser(u *User) error {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return errors.New("store user got error")
+		return fmt.Errorf("store user got error")
 	}
 
 	return nil

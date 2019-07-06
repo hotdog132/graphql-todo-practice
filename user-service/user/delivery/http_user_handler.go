@@ -28,7 +28,9 @@ func (uh *HttpUserHandler) StoreUser(c echo.Context) error {
 	}
 
 	if err := uh.UserUsecase.Store(u); err != nil {
-		return err
+		r := make(map[string]string)
+		r["status"] = "Existed"
+		c.JSON(http.StatusOK, r)
 	}
 
 	return c.JSON(http.StatusOK, u)
