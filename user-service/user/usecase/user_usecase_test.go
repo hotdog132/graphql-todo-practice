@@ -1,93 +1,82 @@
 package usecase_test
 
 import (
-	"database/sql"
-	"fmt"
-	"regexp"
+	"errors"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-test/deep"
-	"github.com/hotdog132/graphql-todo-practice/user-service/models"
-	"github.com/hotdog132/graphql-todo-practice/user-service/user"
-	"github.com/hotdog132/graphql-todo-practice/user-service/user/repository"
 	"github.com/hotdog132/graphql-todo-practice/user-service/user/usecase"
-	"github.com/jinzhu/gorm"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+
+	"github.com/hotdog132/graphql-todo-practice/user-service/models"
+	"github.com/hotdog132/graphql-todo-practice/user-service/user/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-type Suite struct {
-	suite.Suite
-	mock     sqlmock.Sqlmock
-	usercase user.Usecase
+func TestStore(t *testing.T) {
+	mockRepo := new(mocks.MockRepository)
+	mockUser := models.User{
+		ID:   1,
+		Name: "user-1",
+	}
+
+	t.Run("no user record", func(t *testing.T) {
+		tempMockUser := mockUser
+		mockRepo.On("Store", mock.AnythingOfType("*models.User")).Return(nil).Once()
+
+		u := usecase.NewUserUsecase(mockRepo)
+
+		err := u.Store(&tempMockUser)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("has one user record", func(t *testing.T) {
+		tempMockUser := mockUser
+		mockRepo.On("Store", mock.AnythingOfType("*models.User")).Return(errors.New("user duplicated")).Once()
+
+		u := usecase.NewUserUsecase(mockRepo)
+
+		err := u.Store(&tempMockUser)
+
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func (s *Suite) SetupSuite() {
-	var (
-		db  *sql.DB
-		err error
-	)
+func TestFetch(t *testing.T) {
+	mockRepo := new(mocks.MockRepository)
+	mockUser := models.User{
+		ID:   1,
+		Name: "user-1",
+	}
 
-	db, s.mock, err = sqlmock.New()
-	require.NoError(s.T(), err)
+	t.Run("Fetch one user", func(t *testing.T) {
+		tempMockUser := mockUser
+		mockRepo.On("Fetch", mock.AnythingOfType("int")).Return(&tempMockUser, nil).Once()
 
-	DB, err := gorm.Open("postgres", db)
-	require.NoError(s.T(), err)
+		u := usecase.NewUserUsecase(mockRepo)
 
-	DB.LogMode(true)
+		fetchUser, err := u.Fetch(mockUser.ID)
 
-	r := repository.NewPsqlUserRepository(DB)
-	s.usercase = usecase.NewUserUsecase(r)
-}
+		assert.NoError(t, err)
+		assert.Equal(t, &tempMockUser, fetchUser)
+		mockRepo.AssertExpectations(t)
+	})
 
-func (s *Suite) TestFetch() {
+	t.Run("Fetch all users", func(t *testing.T) {
+		tempMockUser1 := mockUser
+		tempMockUser2 := mockUser
+		users := []*models.User{&tempMockUser1, &tempMockUser2}
 
-	queryID := 1
-	expectUserName := "user-1"
+		mockRepo.On("FetchAll").Return(users, nil).Once()
 
-	s.mock.ExpectQuery(fmt.Sprintf(regexp.QuoteMeta(
-		`SELECT * FROM "users" WHERE ("users"."id" = %d) ORDER BY "users"."id" ASC LIMIT 1`),
-		queryID)).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
-			AddRow(queryID, expectUserName))
+		u := usecase.NewUserUsecase(mockRepo)
 
-	u, err := s.usercase.Fetch(queryID)
+		fetchUsers, err := u.FetchAll()
 
-	require.NoError(s.T(), err)
-	require.Nil(s.T(), deep.Equal(&models.User{ID: queryID, Name: expectUserName}, u))
-}
-
-func (s *Suite) TestFetchAll() {
-	queryID1 := 1
-	expectUserName1 := "user-1"
-	queryID2 := 2
-	expectUserName2 := "user-2"
-
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		`SELECT * FROM "users"`)).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
-			AddRow(queryID1, expectUserName1).AddRow(queryID2, expectUserName2))
-
-	users, err := s.usercase.FetchAll()
-
-	require.NoError(s.T(), err)
-	require.Equal(s.T(), 2, len(users))
-}
-
-// func (s *Suite) TestStore() {
-// 	expectUserName := "user-1"
-
-// 	s.mock.ExpectExec("INSERT INTO users").
-// 		WithArgs("expectUserName", time.Now(), time.Now())
-
-// 	u := &models.User{Name: expectUserName}
-// 	err := s.usercase.Store(u)
-
-// 	require.NoError(s.T(), err)
-// }
-
-func TestInit(t *testing.T) {
-	s := new(Suite)
-	suite.Run(t, s)
+		assert.NoError(t, err)
+		assert.Equal(t, len(fetchUsers), 2)
+		mockRepo.AssertExpectations(t)
+	})
 }
